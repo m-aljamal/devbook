@@ -1,0 +1,6 @@
+{
+    "mongoURI": "mongodb+srv://m_jamal:metal158@cluster0-fbyyl.mongodb.net/devbook?retryWrites=true&w=majority",
+    "jwtSecret": "metal158",
+    "githubClientId": "87150399927bef97e022",
+    "githubSecret": "2cf617b667b09abee29509eb24f333d7a06e100c"
+}
