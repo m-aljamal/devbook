@@ -17,6 +17,8 @@
     "nodemon": "^2.0.2"
   },
   "dependencies": {
+    "@material-ui/core": "^4.9.7",
+    "@material-ui/icons": "^4.9.1",
     "bcryptjs": "^2.4.3",
     "config": "^3.3.0",
     "express": "^4.17.1",
@@ -26,7 +28,11 @@
     "mongoose": "^5.9.4",
     "mongoose-unique-validator": "^2.0.3",
     "react-icons": "^3.9.0",
+    "redux": "^4.0.5",
+    "redux-devtools-extension": "^2.13.8",
+    "redux-thunk": "^2.3.0",
     "request": "^2.88.2",
-    "styled-components": "^5.0.1"
+    "styled-components": "^5.0.1",
+    "thunk": "0.0.1"
   }
 }
