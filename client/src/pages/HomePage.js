@@ -2,7 +2,13 @@ import React from "react";
 import img from "../img/home.jpg";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
-const HomePage = () => {
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
+import { Redirect } from "react-router-dom";
+const HomePage = ({ isAuthenticated }) => {
+  if (isAuthenticated) {
+   return <Redirect to="/dashboard" />;
+  }
   return (
     <HomeStyle>
       <div className="title">
@@ -37,6 +43,9 @@ const HomePage = () => {
   );
 };
 const HomeStyle = styled.div`
+  position: absolute;
+  top: 0;
+  z-index: -10;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -77,4 +86,11 @@ const HomeStyle = styled.div`
     }
   }
 `;
-export default HomePage;
+
+HomePage.prototype = {
+  isAuthenticated: PropTypes.bool
+};
+const mapStateToProps = state => ({
+  isAuthenticated: state.auth.isAuthenticated
+});
+export default connect(mapStateToProps)(HomePage);

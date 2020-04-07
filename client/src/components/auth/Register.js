@@ -13,9 +13,14 @@ import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import axios from "axios";
+import { connect } from "react-redux";
+import { setAlert } from "../../actions/alert";
+import PropTypes from "prop-types";
+import { register } from "../../actions/auth";
+import { Redirect } from "react-router-dom";
 const useStyles = makeStyles(theme => ({
   paper: {
-    paddingTop: "50px",
+    paddingTop: "25px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center"
@@ -33,7 +38,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const Register = () => {
+const Register = ({ setAlert, register, isAuthenticated }) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -49,33 +54,38 @@ const Register = () => {
   const handleSubmit = async e => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      console.log("password not matched");
+      setAlert("password not matched", "danger"); // alert , alert type
     }
-    const newUser = {
-      name,
-      email,
-      password
-    };
-    try {
-      const config = {
-        headers: {
-          "Content-type": "application/json"
-        }
-      };
-      const body = JSON.stringify(newUser);
-      const res = await axios.post("/api/users", body, config);
-      console.log(res.data);
-    } catch (error) {
-      console.log(error);
-    }
-    setFormData({
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: ""
-    });
+    register({ name, email, password });
+
+    // const newUser = {
+    //   name,
+    //   email,
+    //   password
+    // };
+    // try {
+    //   const config = {
+    //     headers: {
+    //       "Content-type": "application/json"
+    //     }
+    //   };
+    //   const body = JSON.stringify(newUser);
+    //   const res = await axios.post("/api/users", body, config);
+    //   console.log(res.data);
+    // } catch (error) {
+    //   console.log(error);
+    // }
+    // setFormData({
+    //   name: "",
+    //   email: "",
+    //   password: "",
+    //   confirmPassword: ""
+    // });
   };
   const classes = useStyles();
+  if (isAuthenticated) {
+    return <Redirect to="/dashboard" />;
+  }
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
@@ -177,5 +187,13 @@ const Register = () => {
     </Container>
   );
 };
+Register.propTypes = {
+  setAlert: PropTypes.func.isRequired,
+  register: PropTypes.func.isRequired,
+  isAuthenticated: PropTypes.bool
+};
 
-export default Register;
+const mapStateToProps = state => ({
+  isAuthenticated: state.auth.isAuthenticated
+});
+export default connect(mapStateToProps, { setAlert, register })(Register);

@@ -4,19 +4,20 @@ const { validationResult } = require("express-validator");
 const User = require("../model/User");
 const config = require("config");
 const request = require("request");
+const Post = require("../model/Post");
 //! start user profile
 const getUserProfile = async (req, res, next) => {
   try {
     const profile = await Profile.findOne({
-      user: req.user.id
+      user: req.user.id,
     }).populate("user", ["name", "avatar"]); // the array of what we want from user
 
     if (!profile) {
-      return next(new HttpError("There is no profile for this user"));
+      return res.status(400).json({ msg: "There is no profile for this user" });
     }
-    res.json(profile);
+    res.json(profile.populate("user", ["name", "avatar"]));
   } catch (error) {
-    return next(new HttpError("server error"));
+    res.status(500).send("Server Error");
   }
 };
 
@@ -24,12 +25,7 @@ const getUserProfile = async (req, res, next) => {
 const createProfile = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return next(
-      new HttpError(
-        "invalid inputs passed, plese check your data and try again",
-        500
-      )
-    );
+    return res.status(400).json({ errors: errors.array() });
   }
 
   const {
@@ -44,7 +40,7 @@ const createProfile = async (req, res, next) => {
     twitter,
     facebook,
     linkedin,
-    instagram
+    instagram,
   } = req.body;
   // build profile  object
 
@@ -63,7 +59,7 @@ const createProfile = async (req, res, next) => {
   if (githubusername) profileFields.githubusername = githubusername;
   //  the skills need to turn into array
   if (skills) {
-    profileFields.skills = skills.split(",").map(skill => skill.trim());
+    profileFields.skills = skills.split(",").map((skill) => skill.trim());
   }
 
   //   build social object
@@ -95,7 +91,7 @@ const createProfile = async (req, res, next) => {
   } catch (error) {
     console.log(error);
 
-    return next(new HttpError("server error", 500));
+    res.status(500).send("Server Error");
   }
   res.send("work");
 };
@@ -123,7 +119,7 @@ const getUserProfileById = async (req, res, next) => {
   try {
     userFound = await Profile.findOne({ user: userId }).populate("user", [
       "name",
-      "avatar"
+      "avatar",
     ]);
     if (!userFound) {
       return next(new HttpError("Profile not found", 400));
@@ -142,6 +138,8 @@ const getUserProfileById = async (req, res, next) => {
 
 const deleteUserAndProfile = async (req, res, next) => {
   try {
+    // remove user post you can keep the post
+    await Post.deleteMany({ user: req.user.id });
     //   Remove profile
     await Profile.findOneAndRemove({ user: req.user.id }); // it is private and we have access to user id by auth middleware
     // Remove user
@@ -168,7 +166,7 @@ const addExperience = async (req, res) => {
     from,
     to,
     current,
-    description
+    description,
   };
   try {
     const profile = await Profile.findOne({ user: req.user.id });
@@ -191,7 +189,7 @@ const deleteExperience = async (req, res) => {
     const profile = await Profile.findOne({ user: req.user.id });
     // get remove index
     const removeIndex = profile.experience
-      .map(item => item.id)
+      .map((item) => item.id)
       .indexOf(req.params.exp_id);
     profile.experience.splice(removeIndex, 1);
     await profile.save();
@@ -217,7 +215,7 @@ const addEducation = async (req, res) => {
     from,
     to,
     current,
-    description
+    description,
   } = req.body;
 
   const newEducation = {
@@ -227,7 +225,7 @@ const addEducation = async (req, res) => {
     from,
     to,
     current,
-    description
+    description,
   };
   try {
     const profile = await Profile.findOne({ user: req.user.id });
@@ -245,7 +243,7 @@ const deleteEducation = async (req, res) => {
   try {
     const profile = await Profile.findOne({ user: req.user.id });
     const removeEdu = profile.education
-      .map(edu => edu.id)
+      .map((edu) => edu.id)
       .indexOf(req.params.edu_id);
     profile.education.splice(removeEdu, 1);
     await profile.save();
@@ -264,7 +262,7 @@ const getUserGithub = async (req, res) => {
         "githubClientId"
       )}&client_secret=${config.get("githubSecret")}`,
       method: "GET",
-      headers: { "user-agent": "node.js" }
+      headers: { "user-agent": "node.js" },
     };
     request(option, (error, response, body) => {
       if (error) console.log(error);

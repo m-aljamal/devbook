@@ -2,7 +2,33 @@ import React from "react";
 import styled from "styled-components";
 import { FaCode } from "react-icons/fa";
 import { Link } from "react-router-dom";
-const Navbar = () => {
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
+import { logout } from "../actions/auth";
+const Navbar = ({ auth: { isAuthenticated, loading }, logout }) => {
+  // get only isAuthenticated and loading from auth not all of auth state
+  const authLinks = (
+    <>
+      <Link style={{ margin: "0 25px" }} to="dashboard" className="link">
+        Dashboard
+      </Link>
+      <Link to="#!" className="link" onClick={logout}>
+        Logout
+      </Link>
+    </>
+  );
+
+  const guestLinks = (
+    <>
+     
+      <Link to="register" style={{ margin: "0 20px" }} className="link">
+        Register
+      </Link>
+      <Link to="/login" className="link">
+        Login
+      </Link>
+    </>
+  );
   return (
     <Header>
       <div className="header-content">
@@ -13,15 +39,8 @@ const Navbar = () => {
           </Link>
         </div>
         <div className="links">
-          <Link to="/developers" className="link">
-            Developers
-          </Link>
-          <Link to="register" style={{ margin: "0 20px" }} className="link">
-            Register
-          </Link>
-          <Link to="/login" className="link">
-            Login
-          </Link>
+          <Link className="link" to="profiles">Developers</Link>
+          {!loading && <> {isAuthenticated ? authLinks : guestLinks} </>}
         </div>
       </div>
     </Header>
@@ -31,7 +50,7 @@ const Header = styled.header`
   width: 100%;
   height: 30px;
   background: rgba(109, 109, 109, 0.54);
-  position: absolute;
+
   .header-content {
     height: 100%;
     max-width: 95%;
@@ -62,4 +81,11 @@ const Header = styled.header`
     }
   }
 `;
-export default Navbar;
+Navbar.propTypes = {
+  logout: PropTypes.func.isRequired,
+  auth: PropTypes.object.isRequired,
+};
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+});
+export default connect(mapStateToProps, { logout })(Navbar); // logout is from action

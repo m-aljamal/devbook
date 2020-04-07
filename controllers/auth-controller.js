@@ -16,46 +16,46 @@ const getUserToken = async (req, res, next) => {
 const login = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return next(
-      new HttpError(
-        "invalid inputs passed, plese check your data and try again",
-        500
-      )
-    );
+    return res.status(400).json({ errors: errors.array() });
   }
   const { email, password } = req.body;
-  let user;
+
   try {
-    user = await User.findOne({ email });
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ errors: [{ msg: "email is not found, or wrong password" }] });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res
+        .status(400)
+        .json({ errors: [{ msg: "email is not found, or wrong password" }] });
+    }
+    const payload = {
+      user: {
+        id: user.id
+      }
+    };
+    //   check user password
+
+    jwt.sign(
+      payload,
+      config.get("jwtSecret"),
+      { expiresIn: 360000 },
+      (err, token) => {
+        if (err) throw err;
+        res.json({ token: token });
+      }
+    );
   } catch (err) {
-    return next(new HttpError("Cannot find user with this email ", 500));
+    return res.status(500).json({
+      errors: [{ msg: "Cannot find user with this email " }]
+    });
   }
-
-  if (!user) {
-    return next(new HttpError("email is not found, or wrong password", 401));
-  }
-
-  //   check user password
-  const isMatch = await bcrypt.compare(password, user.password);
-
-  if (!isMatch) {
-    return next(new HttpError("email is not found, or wrong password", 401));
-  }
-  const payload = {
-    user: {
-      id: user.id
-    }
-  };
-  jwt.sign(
-    payload,
-    config.get("jwtSecret"),
-    { expiresIn: 360000 },
-    (err, token) => {
-      if (err) throw err;
-      res.json({ token: token });
-    }
-  );
-  // res.status(200).json({ token });
 };
 exports.getUserToken = getUserToken;
 exports.login = login;

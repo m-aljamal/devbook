@@ -12,7 +12,10 @@ import Grid from "@material-ui/core/Grid";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
-
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
+import { login } from "../../actions/auth";
+import { Redirect } from "react-router-dom";
 const useStyles = makeStyles(theme => ({
   root: {
     height: "100vh"
@@ -45,7 +48,7 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(3, 0, 2)
   }
 }));
-const Login = () => {
+const Login = ({ login, isAuthenticated }) => {
   const classes = useStyles();
   const [formData, setFormData] = useState({
     email: "",
@@ -59,8 +62,11 @@ const Login = () => {
   const handleSubmit = async e => {
     e.preventDefault();
 
-    console.log(formData);
+    login(email, password);
   };
+  if (isAuthenticated) {
+    return <Redirect to="/dashboard" />;
+  }
   return (
     <Grid container component="main" className={classes.root}>
       <CssBaseline />
@@ -137,4 +143,12 @@ const Login = () => {
   );
 };
 
-export default Login;
+Login.prototype = {
+  login: PropTypes.func.isRequired,
+  isAuthenticated: PropTypes.bool
+};
+
+const mapStateToProps = state => ({
+  isAuthenticated: state.auth.isAuthenticated
+});
+export default connect(mapStateToProps, { login })(Login);

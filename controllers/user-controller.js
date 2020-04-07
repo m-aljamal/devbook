@@ -11,52 +11,39 @@ const createUser = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log(errors);
-    return next(
-      new HttpError(
-        "invalid inputs passed, plese check your data and try again",
-        500
-      )
-    );
+    return res.status(400).json({ errors: errors.array() });
   }
 
   const { name, email, password } = req.body;
 
   //   check if user exists
-  let existUser;
 
   try {
-    existUser = await User.findOne({ email });
-  } catch (err) {
-    return next(new HttpError("Signup faild plese try again", 500));
-  }
+    const existUser = await User.findOne({ email });
+    if (existUser) {
+      return res.status(400).json({ errors: [{ msg: "User alredy exists" }] });
+    }
+    //   create avatar for user
+    const avatar = gravatar.url(email, {
+      s: "200",
+      r: "pg",
+      d: "mm"
+    });
 
-  if (existUser) {
-    return next(
-      new HttpError("User is already exists, please login instead", 422)
-    );
-  }
-  //   create avatar for user
-  const avatar = gravatar.url(email, {
-    s: "200",
-    r: "pg",
-    d: "mm"
-  });
+    //   create new user
 
-  //   create new user
+    const user = new User({
+      name,
+      email,
+      password,
+      avatar
+    });
 
-  const user = new User({
-    name,
-    email,
-    password,
-    avatar
-  });
-  //   Encrypt password
-  const salt = await bcrypt.genSalt(10); // 10 is rcomanded
-  user.password = await bcrypt.hash(password, salt);
-
-  try {
+    //   Encrypt password
+    const salt = await bcrypt.genSalt(10); // 10 is rcomanded
+    user.password = await bcrypt.hash(password, salt);
     await user.save();
-    //
+
     const payload = {
       user: {
         id: user.id
@@ -71,10 +58,9 @@ const createUser = async (req, res, next) => {
         res.json({ token });
       }
     ); // sign takes payload and secrit saved in config json
-
-    res.status(201).json({ token });
   } catch (err) {
-    return next(new HttpError("faild to create user, plese tru again", 500));
+    console.error(err.message);
+    return res.status(500).send("Signup faild plese try again");
   }
 };
 

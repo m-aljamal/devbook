@@ -18,13 +18,9 @@ router.post(
   [
     auth,
     [
-      check("status", "Status is required")
-        .not()
-        .isEmail(),
-      check("skills", "Skills is required")
-        .not()
-        .isEmpty()
-    ]
+      check("status", "Status is required").not().isEmpty(),
+      check("skills", "Skills is required").not().isEmpty(),
+    ],
   ],
   profileControler.createProfile
 );
@@ -53,16 +49,10 @@ router.put(
   [
     auth,
     [
-      check("title", "title is required")
-        .not()
-        .isEmpty(),
-      check("company", "Company is required")
-        .not()
-        .isEmpty(),
-      check("from", "Form is required")
-        .not()
-        .isEmpty()
-    ]
+      check("title", "title is required").not().isEmpty(),
+      check("company", "Company is required").not().isEmpty(),
+      check("from", "From is required").not().isEmpty(),
+    ],
   ],
   profileControler.addExperience
 );
@@ -75,23 +65,19 @@ router.delete("/experience/:exp_id", auth, profileControler.deleteExperience);
 // @route        PUT api/profile/experience
 // @desc         add profile experience
 // @access       private
-router.put("/education", [
-  auth,
+router.put(
+  "/education",
   [
-    check("school", "school is required")
-      .not()
-      .notEmpty(),
-    check("degree", "degree is required")
-      .not()
-      .isEmpty(),
-    check("fieldofstudy", "field of study is required")
-      .not()
-      .isEmpty(),
-    check("from", "from is required")
-      .not()
-      .isEmpty()
-  ]
-], profileControler.addEducation);
+    auth,
+    [
+      check("school", "school is required").not().notEmpty(),
+      check("degree", "degree is required").not().isEmpty(),
+      check("fieldofstudy", "field of study is required").not().isEmpty(),
+      check("from", "from is required").not().isEmpty(),
+    ],
+  ],
+  profileControler.addEducation
+);
 
 // @route        DELETE api/profile/education/edu_id
 // @desc         Delete education
@@ -102,6 +88,6 @@ router.delete("/education/:edu_id", auth, profileControler.deleteEducation);
 // @desc         Get user repos from Githup
 // @access       public
 
-router.get('/githup/:username', profileControler.getUserGithub)
+router.get("/githup/:username", profileControler.getUserGithub);
 
 module.exports = router;
